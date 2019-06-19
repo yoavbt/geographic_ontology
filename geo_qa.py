@@ -25,11 +25,16 @@ def create_ontology(ontology):
 
 def extract_president(res, g):
     doc = lxml.html.fromstring(res.content)
-    a = doc.xpath(
-        "//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/a/text()")
-    relative_link = doc.xpath(
-        "//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/a/@href")
     country = doc.xpath('//h1[1]//text()')
+    if country[0] == "United States":
+        a = doc.xpath("//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/span/a/text()")
+        relative_link = doc.xpath(
+            "//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/span/a/@href")
+    else:
+        a = doc.xpath(
+        "//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/a/text()")
+        relative_link = doc.xpath(
+            "//table[contains(@class, 'infobox')][1]//tbody//th//a[contains(text(),'President')]/../../following-sibling::td/a/@href")
     if len(a) > 0 and len(relative_link) > 0:
         country_name = rdflib.URIRef('http://example.org/' + country[0].lower().replace(' ', '_'))
         president = rdflib.URIRef('http://example.org/' + a[0].lower().replace(' ', '_'))
@@ -94,7 +99,7 @@ def extract_population(res, g):
     country = doc.xpath('//h1[1]//text()')
     if len(a) > 0:
         country_name = rdflib.URIRef('http://example.org/' + country[0].lower().replace(' ', '_'))
-        country_population = rdflib.URIRef('http://example.org/' + a[0].split(' ')[0])
+        country_population = rdflib.URIRef('http://example.org/' + a[0].split(' ')[0].rstrip('\t'))
         population = rdflib.URIRef('http://example.org/' + 'population')
         g.add((country_name, population, country_population))
         print(a[0].split(' ')[0], country[0])
@@ -107,7 +112,7 @@ def extract_area(res, g):
     country = doc.xpath('//h1[1]//text()')
     if len(a) > 0:
         country_name = rdflib.URIRef('http://example.org/' + country[0].lower().replace(' ', '_'))
-        area_country = rdflib.URIRef('http://example.org/' + a[0].split(' ')[0])
+        area_country = rdflib.URIRef('http://example.org/' + a[0].split(' ')[0].rstrip('\t'))
         area = rdflib.URIRef('http://example.org/' + 'area')
         g.add((country_name, area, area_country))
         print(a[0].split(' ')[0], country[0])
@@ -120,7 +125,7 @@ def extract_government(res, g):
     country = doc.xpath('//h1[1]//text()')
     if len(a) > 0:
         country_name = rdflib.URIRef('http://example.org/' + country[0].lower().replace(' ', '_'))
-        government_country = rdflib.URIRef('http://example.org/' + '_'.lower().join(a).replace(' ' ,'_'))
+        government_country = rdflib.URIRef('http://example.org/' + '_'.lower().join(a).replace(' ' ,'_').rstrip('/t'))
         government = rdflib.URIRef('http://example.org/' + 'government')
         g.add((country_name, government, government_country))
         print(a)
@@ -156,7 +161,7 @@ def handleWhen(arr_of_words, g):
     relation = arr_of_words[3]
     del arr_of_words[-1]
     if relation == "president":
-        country = "<http://example.org/" + '_'.join(arr_of_words[5:]).lower() + ">"
+        country = "<http://example.org/" + '_'.join(arr_of_words[5:]).lower().rstrip('/t') + ">"
         q = "select ?d where { " + country + " <http://example.org/president_of> ?c . ?c <http://example.org/born_in> ?d}"
         x1 = g.query(q)
         for row in x1:
@@ -165,7 +170,7 @@ def handleWhen(arr_of_words, g):
         if arr_of_words[4] != "minister":
             print("Dont try to fool me..")
             return
-        country = "<http://example.org/" + '_'.join(arr_of_words[6:]).lower() + ">"
+        country = "<http://example.org/" + '_'.join(arr_of_words[6:]).lower().rstrip('/t') + ">"
         q = "select ?d where { " + country + " <http://example.org/prime_minister_of> ?c . ?c <http://example.org/born_in> ?d}"
         x1 = g.query(q)
         for row in x1:
