@@ -27,4 +27,4 @@ Creating ontology with the following:
 
 # How to run
  - python geo_qa.py create ontology.nt
- - python geo_qa.py question <natural language question string>
+ - python geo_qa.py question natural_language_question_string
